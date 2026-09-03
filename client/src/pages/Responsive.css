@@ -1,0 +1,48 @@
+/* Laptop: keep the desktop shell compact on smaller notebook screens. */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .navbar { padding: 14px 20px; }
+  .sidebar { width: 220px; }
+  .main-content { padding: 28px 30px 45px; }
+  .dashboard-grid { gap: 14px; }
+  .card { padding: 20px; }
+}
+
+/* Tablet: preserve readable navigation while giving the content more width. */
+@media (min-width: 601px) and (max-width: 900px) {
+  .topbar-actions { gap: 14px; }
+  .sidebar { width: 190px; }
+  .menu-link { padding-left: 17px; padding-right: 17px; }
+  .main-content { padding: 26px 22px 40px; }
+  .page-heading h1 { font-size: 28px; }
+  .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .overview-panels { grid-template-columns: 1fr; }
+  .records-card { max-width: calc(100vw - 235px); }
+}
+
+/* Mobile: stack controls and make the sidebar a compact horizontal rail. */
+@media (max-width: 600px) {
+  .dashboard-container { min-height: 100svh; height: auto; }
+  .navbar { padding: 12px 14px; }
+  .navbar-brand { font-size: 17px; }
+  .navbar-menu { gap: 8px; }
+  .navbar-user { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-logout { padding: 8px 10px; }
+  .dashboard-content { display: block; overflow: visible; }
+  .sidebar { width: auto; padding: 8px; border-right: 0; border-bottom: 1px solid #e0e0e0; overflow-x: auto; overflow-y: hidden; }
+  .sidebar-menu { display: flex; min-width: max-content; gap: 4px; }
+  .sidebar-menu li { flex: 0 0 auto; }
+  .menu-link { width: auto; padding: 9px 12px; font-size: 12px; border-left: 0; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .menu-link:hover, .menu-link.active { border-left-color: transparent; border-bottom-color: #667eea; }
+  .main-content { padding: 20px 12px 35px; overflow: visible; }
+  .page-heading { margin-bottom: 20px; }
+  .page-heading h1 { font-size: 25px; }
+  .page-action, .secondary-action { min-height: 40px; }
+  .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .card { padding: 15px; }
+  .card h3 { font-size: 11px; }
+  .stat-number { font-size: 25px; }
+  .stat-label { font-size: 11px; }
+  .records-card { width: 100%; }
+  .table-scroll { -webkit-overflow-scrolling: touch; }
+  .edit-modal { padding: 18px; }
+}
