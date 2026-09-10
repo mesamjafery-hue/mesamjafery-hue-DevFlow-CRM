@@ -2,11 +2,14 @@
   "info": { "name": "DevFlow CRM API", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:5000/api/v1" },
-    { "key": "token", "value": "" }
+    { "key": "token", "value": "" },
+    { "key": "code", "value": "" }
   ],
   "item": [
     { "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/health" } },
-    { "name": "Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@devflow.com\",\n  \"password\": \"Password@123\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+    { "name": "Login (password)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@devflow.com\",\n  \"password\": \"Password@123\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+    { "name": "Request Login Code", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@devflow.com\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+    { "name": "Verify Login Code", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": 1,\n  \"code\": \"{{code}}\"\n}" }, "url": "{{baseUrl}}/auth/2fa/login-verify" } },
     { "name": "List Leads", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/leads" } },
     { "name": "List Clients", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/clients" } },
     { "name": "List Contacts", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/contacts" } },

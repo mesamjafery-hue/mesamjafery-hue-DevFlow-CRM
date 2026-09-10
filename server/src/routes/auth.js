@@ -7,7 +7,7 @@ const { generateTokens } = require('../utils/tokenUtils');
 const { refreshTokenMiddleware } = require('../middleware/auth');
 const rateLimit = require('../middleware/rateLimit');
 const { authMiddleware } = require('../middleware/auth');
-const { requestCode, verifyCode, verifyLoginCode } = require('../controllers/twoFactorController');
+const { requestCode, verifyCode, verifyLoginCode, resendLoginCode } = require('../controllers/twoFactorController');
 
 const router = express.Router();
 
@@ -21,6 +21,7 @@ router.post('/refresh-token', refreshTokenMiddleware);
 router.post('/2fa/request', authMiddleware, requestCode);
 router.post('/2fa/verify', authMiddleware, verifyCode);
 router.post('/2fa/login-verify', rateLimit({ max: 10 }), verifyLoginCode);
+router.post('/login/resend-code', rateLimit({ max: 5, message: 'Too many code requests. Please try again later.' }), resendLoginCode);
 
 // ── Google OAuth 2.0 ─────────────────────────────────────────────
 const isGoogleConfigured = () => !!(config.google.clientId && config.google.clientSecret);

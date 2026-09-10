@@ -42,13 +42,21 @@ export const RegisterPage = () => {
     }
 
     try {
-      await register({
+      const response = await register({
         name: formData.name,
         email: formData.email,
         password: formData.password,
       });
-      // Account is active immediately - sign the user straight in
-      navigate('/dashboard');
+      // Registration sends a sign-in code to the email that was just provided.
+      // The account is only active once that code is verified.
+      const data = response.data;
+      if (data?.requiresTwoFactor) {
+        const params = new URLSearchParams({ userId: data.userId, email: data.email });
+        if (data.devCode) params.set('devCode', data.devCode);
+        navigate(`/two-factor?${params.toString()}`);
+      } else {
+        navigate('/dashboard');
+      }
     } catch {
       // Error is handled by useAuth hook
     }

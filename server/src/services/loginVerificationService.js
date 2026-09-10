@@ -20,6 +20,10 @@ const generateCode = () => String(crypto.randomInt(100000, 1000000));
 const issueLoginCode = async (user) => {
   const code = generateCode();
 
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Sign-in code for ${user.email}: ${code}`);
+  }
+
   // Only one active challenge per user.
   await TwoFactorChallenge.destroy({ where: { userId: user.id, consumedAt: null } });
   await TwoFactorChallenge.create({

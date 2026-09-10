@@ -70,7 +70,22 @@ npm run dev
 
 Frontend runs on: `http://localhost:5173`
 
-### Demo Credentials
+### Sign-In
+
+Existing accounts sign in directly with their email and password. The sign-in page also
+offers a **"sign in with a code"** option that emails a one-time 6-digit code to the
+address you enter instead (passwordless). New users can **Create account** for their
+own credentials.
+
+```
+1. Enter your email and password, then click Sign In.
+2. — or — click "sign in with a code", then enter the 6-digit code emailed to you.
+3. You are taken to the dashboard once verified.
+```
+
+#### Demo credentials (for testing)
+
+The database is seeded with accounts that all share a demo password:
 
 ```
 Email: admin@devflow.com
@@ -78,7 +93,7 @@ Password: Password@123
 Role: Super Admin
 ```
 
-All users share the same password for demo purposes.
+See `server/seeders/seed.js` for the full list of seeded accounts.
 
 ## 📦 Database Schema
 
@@ -101,11 +116,13 @@ All users share the same password for demo purposes.
 ## 🔑 API Endpoints
 
 ### Authentication
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login
-- `POST /auth/verify-email` - Verify email address
-- `POST /auth/forgot-password` - Request password reset
-- `POST /auth/reset-password` - Reset password with token
+- `POST /auth/register` - Register a new account (emails a sign-in code)
+- `POST /auth/login` - Request a sign-in code for an email (passwordless)
+- `POST /auth/2fa/login-verify` - Verify a sign-in code and receive tokens
+- `POST /auth/login/resend-code` - Re-send a sign-in code
+- `POST /auth/verify-email` - Verify email address with a token
+- `POST /auth/forgot-password` - Request a password reset link
+- `POST /auth/reset-password` - Reset password with a token
 - `POST /auth/refresh-token` - Refresh access token
 
 ### CRM Core
@@ -132,7 +149,7 @@ All users share the same password for demo purposes.
 
 ### JWT Token Flow
 
-1. **Login**: User provides credentials → Server returns access & refresh tokens
+1. **Login**: User enters their email and password → Server verifies credentials and returns access & refresh tokens (a one-time email code is also available as a passwordless option)
 2. **Access Token**: Valid for 15 minutes, sent in Authorization header
 3. **Refresh Flow**: When access token expires, client uses refresh token to get new access token
 4. **Logout**: Clear tokens from client storage
@@ -244,7 +261,7 @@ cd server
 cd client
 npm run dev
 # Visit http://localhost:5173
-# Use demo credentials to login
+# Sign in with an email code (see "Sign-In" section above)
 ```
 
 ## 🚨 Error Handling

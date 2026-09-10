@@ -29,7 +29,7 @@ export const useAuth = () => {
     dispatch(setError(null));
     try {
       const response = await authApi.login(email, password);
-      const { user, accessToken, refreshToken } = response.data;
+      const { user, accessToken, refreshToken } = response.data || {};
       if (user) dispatch(setUser(user));
       if (accessToken && refreshToken) dispatch(setTokens({ accessToken, refreshToken }));
       return response;
@@ -96,7 +96,7 @@ export const useAuth = () => {
     dispatch(setError(null));
     try {
       const response = await authApi.verifyLoginCode(userId, code);
-      const { user: verifiedUser, accessToken: verifiedAccessToken, refreshToken: verifiedRefreshToken } = response.data;
+      const { user: verifiedUser, accessToken: verifiedAccessToken, refreshToken: verifiedRefreshToken } = response.data || {};
       dispatch(setUser(verifiedUser));
       dispatch(setTokens({ accessToken: verifiedAccessToken, refreshToken: verifiedRefreshToken }));
       return response;
@@ -104,6 +104,21 @@ export const useAuth = () => {
       dispatch(setError(err.response?.data?.message || 'Two-factor verification failed'));
       throw err;
     } finally { dispatch(setLoading(false)); }
+  };
+
+  const resendLoginCode = async (userId) => {
+    dispatch(setLoading(true));
+    dispatch(setError(null));
+    try {
+      const response = await authApi.resendLoginCode(userId);
+      return response;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to resend verification code';
+      dispatch(setError(message));
+      throw err;
+    } finally {
+      dispatch(setLoading(false));
+    }
   };
 
   return {
@@ -119,5 +134,6 @@ export const useAuth = () => {
     resetPassword,
     logout: logoutUser,
     verifyLoginCode,
+    resendLoginCode,
   };
 };

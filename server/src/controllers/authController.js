@@ -4,6 +4,7 @@ const config = require('../config');
 const { sendSuccess, sendError, sendValidationError } = require('../utils/response');
 const { sendPasswordResetEmail } = require('../utils/mailer');
 const { issueLoginCode } = require('../services/loginVerificationService');
+const { generateTokens } = require('../utils/tokenUtils');
 const crypto = require('crypto');
 
 // Validation schemas
@@ -15,7 +16,7 @@ const registerSchema = Joi.object({
 
 const loginSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().required(),
+  password: Joi.string().optional().allow(''),
 });
 
 const verifyEmailSchema = Joi.object({
@@ -92,6 +93,9 @@ const register = async (req, res, next) => {
   }
 };
 // Login controller
+// Existing accounts sign in directly with their password. When no password is
+// supplied, a one-time code is emailed to the address the user signed in with
+// instead (passwordless sign-in).
 const login = async (req, res, next) => {
   try {
     const { error, value } = loginSchema.validate(req.body);
@@ -102,14 +106,8 @@ const login = async (req, res, next) => {
     const { email, password } = value;
 
     // Find user
-    const user = await User.findOne({ where: { email }, include: Role });
+    const user = await User.findOne({ where: { email: email.toLowerCase() }, include: Role });
     if (!user) {
-      return sendError(res, 'Invalid credentials', 401);
-    }
-
-    // Verify password
-    const isValidPassword = await user.verifyPassword(password);
-    if (!isValidPassword) {
       return sendError(res, 'Invalid credentials', 401);
     }
 
@@ -118,7 +116,32 @@ const login = async (req, res, next) => {
       return sendError(res, 'User account is suspended', 403);
     }
 
-    // Credentials are valid - issue a one-time code and email it to the account owner.
+    // Existing account: sign in directly with a password.
+    if (password) {
+      const isValidPassword = await user.verifyPassword(password);
+      if (!isValidPassword) {
+        return sendError(res, 'Invalid credentials', 401);
+      }
+
+      const tokens = generateTokens({ id: user.id, email: user.email, roleId: user.roleId });
+      return sendSuccess(
+        res,
+        {
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            status: user.status,
+            emailVerified: user.emailVerified,
+            role: user.Role?.name,
+          },
+          ...tokens,
+        },
+        'Login successful'
+      );
+    }
+
+    // Passwordless path: email a one-time code to the account owner.
     const codeResult = await issueLoginCode(user);
 
     const payload = { requiresTwoFactor: true, userId: user.id, email: user.email };

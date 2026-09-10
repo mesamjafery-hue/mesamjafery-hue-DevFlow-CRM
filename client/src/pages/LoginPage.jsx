@@ -1,30 +1,44 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import apiClient from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
 import './AuthPages.css';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [mode, setMode] = useState('password'); // 'password' | 'code'
+  const [notice, setNotice] = useState('');
   const { login, loading, error } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const oauthError = searchParams.get('oauthError');
 
   const handleGoogleSignIn = () => {
-    window.location.href = 'http://localhost:5000/api/v1/auth/google';
+    window.location.href = `${apiClient.defaults.baseURL}/auth/google`;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setNotice('');
     try {
-      const response = await login(email, password);
-      if (response.data?.requiresTwoFactor) navigate(`/two-factor?userId=${response.data.userId}`);
-      else navigate('/dashboard');
+      const response = await login(email, mode === 'password' ? password : undefined);
+      const data = response.data || {};
+      if (data?.requiresTwoFactor) {
+        const params = new URLSearchParams({ userId: data.userId, email: data.email });
+        if (data.devCode) params.set('devCode', data.devCode);
+        navigate(`/two-factor?${params.toString()}`);
+      } else if (data?.accessToken) {
+        navigate('/dashboard');
+      } else {
+        setNotice(response.message || 'If an account exists for this email, sign in or create an account.');
+      }
     } catch {
-      // Error is handled by useAuth hook
+      // Error is surfaced through the auth hook
     }
   };
+
+  const sendCodeMode = mode === 'code';
 
   return (
     <div className="auth-container">
@@ -36,6 +50,7 @@ export const LoginPage = () => {
 
         {error && <div className="error-message">{error}</div>}
         {oauthError && <div className="error-message">{oauthError}</div>}
+        {notice && <div className="success-message">{notice}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -46,34 +61,64 @@ export const LoginPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              autoComplete="username"
               required
               disabled={loading}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+          {sendCodeMode ? (
+            <button type="submit" className="btn-primary" disabled={loading || !email}>
+              {loading ? 'Sending code...' : 'Send verification code'}
+            </button>
+          ) : (
+            <>
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <button type="submit" className="btn-primary" disabled={loading || !email || !password}>
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </>
+          )}
         </form>
+
+        <div className="auth-links" style={{ textAlign: 'center' }}>
+          <Link to="/forgot-password">Forgot password?</Link>
+          <span> • </span>
+          <Link to="/register">Create account</Link>
+          <span> • </span>
+          {sendCodeMode ? (
+            <button type="button" className="link-button" onClick={() => setMode('password')}>
+              Use password instead
+            </button>
+          ) : (
+            <button type="button" className="link-button" onClick={() => setMode('code')}>
+              Sign in with a code
+            </button>
+          )}
+        </div>
 
         <div className="divider" style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0', color: '#888' }}>
           <span style={{ flex: 1, height: '1px', background: '#ddd' }} /> or <span style={{ flex: 1, height: '1px', background: '#ddd' }} />
         </div>
 
-        <button type="button" className="btn-secondary" onClick={handleGoogleSignIn} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={handleGoogleSignIn}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+        >
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
@@ -82,12 +127,6 @@ export const LoginPage = () => {
           </svg>
           Sign in with Google
         </button>
-
-        <div className="auth-links">
-          <Link to="/forgot-password">Forgot password?</Link>
-          <span> • </span>
-          <Link to="/register">Create account</Link>
-        </div>
       </div>
     </div>
   );

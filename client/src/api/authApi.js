@@ -7,9 +7,11 @@ export const authApi = {
     return response.data;
   },
 
-  // Login user
+  // Sign in with email + password. Omit `password` to receive a one-time code by email instead.
   login: async (email, password) => {
-    const response = await apiClient.post('/auth/login', { email, password });
+    const body = { email };
+    if (password) body.password = password;
+    const response = await apiClient.post('/auth/login', body);
     return response.data;
   },
 
@@ -38,6 +40,10 @@ export const authApi = {
   },
   verifyLoginCode: async (userId, code) => {
     const response = await apiClient.post('/auth/2fa/login-verify', { userId, code });
+    return response.data;
+  },
+  resendLoginCode: async (userId) => {
+    const response = await apiClient.post('/auth/login/resend-code', { userId });
     return response.data;
   },
 };
