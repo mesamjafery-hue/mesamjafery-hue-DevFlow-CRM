@@ -7,3 +7,4 @@ build/
 uploads/
 *.log
 .DS_Store
+U_DevS_*.pdf
