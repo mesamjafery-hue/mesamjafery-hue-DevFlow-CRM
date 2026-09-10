@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+﻿const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 
 module.exports = (sequelize) => {
@@ -42,8 +42,7 @@ module.exports = (sequelize) => {
       defaultValue: false,
     },
     twoFactorEnabled: { type: DataTypes.BOOLEAN, defaultValue: false },
-    twoFactorEnabled: { type: DataTypes.BOOLEAN, defaultValue: false },
-    verificationToken: {
+   verificationToken: {
       type: DataTypes.STRING,
       allowNull: true,
     },

@@ -176,7 +176,7 @@ const invoiceValidation = {
 const ticketValidation = {
   create: Joi.object({
     projectId: Joi.number().required(),
-    clientId: Joi.number().optional(),
+    clientId: Joi.number().required(),
     title: Joi.string().required().min(3).max(200),
     description: Joi.string().required().max(2000),
     priority: Joi.string().optional().valid('low', 'medium', 'high', 'urgent'),

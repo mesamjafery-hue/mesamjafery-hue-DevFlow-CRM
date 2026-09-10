@@ -1,0 +1,108 @@
+﻿
+> client@0.0.0 lint
+> eslint .
+
+
+C:\Users\Meesam Abbas\DevFlow-CRM\client\src\pages\VaultPages.jsx
+   27:26   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  25 |     try { const result = await requirementApi.getAll({ limit: 200 }); setRows(result.data || []); setError(''); } catch (err) { setError(msg(err, 'Could not load requirements.')); }
+  26 |   }, []);
+> 27 |   useEffect(() => { void load(); }, [load]);
+     |                          ^^^^ Avoid calling setState() directly within an effect
+  28 |
+  29 |   const openDetail = useCallback(async (requirement) => {
+  30 |     setSelected(requirement); setDetail(null); setVersions([]); setAttachments([]); setState('');  react-hooks/set-state-in-effect
+  102:26   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  100 |     try { const result = await documentApi.getAll(); setRows(result.data || []); setError(''); } catch (err) { setError(msg(err, 'Could not load documents.')); }
+  101 |   }, []);
+> 102 |   useEffect(() => { void load(); }, [load]);
+      |                          ^^^^ Avoid calling setState() directly within an effect
+  103 |
+  104 |   const upload = async (event) => {
+  105 |     event.preventDefault();                                                                                                           react-hooks/set-state-in-effect
+  138:26   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  136 |     try { const result = await ticketApi.getAll({ limit: 100 }); setTickets(result.data || []); setError(''); } catch (err) { setError(msg(err, 'Could not load tickets.')); }
+  137 |   }, []);
+> 138 |   useEffect(() => { void loadTickets(); }, [loadTickets]);
+      |                          ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  139 |
+  140 |   const openThread = useCallback(async (ticket) => {
+  141 |     setActiveTicket(ticket); setMessages([]); setState('');                        react-hooks/set-state-in-effect
+  184:26   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  182 |     } catch (err) { setError(msg(err, 'Could not load payments.')); }
+  183 |   }, []);
+> 184 |   useEffect(() => { void load(); }, [load]);
+      |                          ^^^^ Avoid calling setState() directly within an effect
+  185 |
+  186 |   const record = async (event) => {
+  187 |     event.preventDefault();                                                                                                                                                                                                       react-hooks/set-state-in-effect
+  221:32   error  'taskApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-undef
+  223:26   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  221 |     try { const result = await taskApi.getAll({ limit: 100 }); setTasks(result.data || []); setError(''); } catch (err) { setError(msg(err, 'Could not load tasks.')); }
+  222 |   }, []);
+> 223 |   useEffect(() => { void loadTasks(); }, [loadTasks]);
+      |                          ^^^^^^^^^ Avoid calling setState() directly within an effect
+  224 |
+  225 |   const openTask = useCallback(async (task) => {
+  226 |     setActiveTask(task); setSubtasks([]); setComments([]); setState('');                           react-hooks/set-state-in-effect
+  228:65   error  'subtaskApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  228:93   error  'taskCommentApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-undef
+  235:17   error  'subtaskApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  235:118  error  'subtaskApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  240:17   error  'subtaskApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  240:87   error  'subtaskApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  245:17   error  'taskCommentApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-undef
+  245:119  error  'taskCommentApi' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-undef
+  291:26   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  289 |     } catch (err) { setError(msg(err, 'Could not load quotations.')); }
+  290 |   }, []);
+> 291 |   useEffect(() => { void load(); }, [load]);
+      |                          ^^^^ Avoid calling setState() directly within an effect
+  292 |
+  293 |   const create = async (event) => {
+  294 |     event.preventDefault();                                                                                                                                                                                                     react-hooks/set-state-in-effect
+
+Γ£û 15 problems (15 errors, 0 warnings)
+

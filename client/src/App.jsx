@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from './pages/AuthFlowPages';
 import TwoFactorPage from './pages/TwoFactorPage';
+import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import './App.css';
 
 class AppErrorBoundary extends React.Component {
@@ -44,6 +45,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/two-factor" element={<TwoFactorPage />} />
+          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
           {/* Protected routes */}
           <Route

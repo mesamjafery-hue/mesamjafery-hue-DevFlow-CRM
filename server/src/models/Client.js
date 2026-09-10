@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+﻿const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
   const Client = sequelize.define('Client', {
@@ -23,7 +23,6 @@ module.exports = (sequelize) => {
         key: 'id',
       },
     },
-    portalUserId: { type: DataTypes.INTEGER, allowNull: true, references: { model: 'users', key: 'id' } },
     portalUserId: {
       type: DataTypes.INTEGER,
       allowNull: true,

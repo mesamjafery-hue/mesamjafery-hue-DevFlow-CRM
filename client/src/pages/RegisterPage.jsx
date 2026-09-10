@@ -47,7 +47,8 @@ export const RegisterPage = () => {
         email: formData.email,
         password: formData.password,
       });
-      navigate('/verify-email');
+      // Account is active immediately - sign the user straight in
+      navigate('/dashboard');
     } catch {
       // Error is handled by useAuth hook
     }

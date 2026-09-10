@@ -1,7 +1,9 @@
 const Joi = require('joi');
-const { User, Role, TwoFactorChallenge } = require('../models');
-const { generateTokens } = require('../utils/tokenUtils');
+const { User, Role } = require('../models');
+const config = require('../config');
 const { sendSuccess, sendError, sendValidationError } = require('../utils/response');
+const { sendPasswordResetEmail } = require('../utils/mailer');
+const { issueLoginCode } = require('../services/loginVerificationService');
 const crypto = require('crypto');
 
 // Validation schemas
@@ -9,7 +11,6 @@ const registerSchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   email: Joi.string().email().required(),
   password: Joi.string().required().min(6).max(100),
-  roleId: Joi.number().optional().default(2), // Default to regular user role
 });
 
 const loginSchema = Joi.object({
@@ -38,7 +39,7 @@ const register = async (req, res, next) => {
       return sendValidationError(res, [{ field: 'input', message: error.details[0].message }]);
     }
 
-    const { name, email, password, roleId } = value;
+    const { name, email, password } = value;
 
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
@@ -46,59 +47,50 @@ const register = async (req, res, next) => {
       return sendError(res, 'Email already registered', 400);
     }
 
-    // Get default role if not specified
-    let role = await Role.findByPk(roleId);
-    if (!role) {
-      role = await Role.findOne({ where: { name: 'Client' } });
-    }
+    // Assign a non-privileged default role server-side.
+    // Never trust client-supplied role ids (prevents privilege escalation).
+    const resolveDefaultRole = async () => {
+      for (const roleName of ['Sales', 'Client']) {
+        const found = await Role.findOne({ where: { name: roleName } });
+        if (found) return found;
+      }
+      const roles = await Role.findAll({ order: [['id', 'ASC']] });
+      return roles.find((r) => r.name !== 'Super Admin' && r.name !== 'Admin') || roles[0];
+    };
+    const role = await resolveDefaultRole();
 
-    // Create verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    // Create user
+    // Create the account inactive-verified state: ownership of the email has not
+    // been proven yet, so we do not hand out tokens until the emailed code is used.
     const user = await User.create({
       name,
       email,
       passwordHash: password, // Password will be hashed by model hook
       roleId: role.id,
-      verificationToken,
-      verificationTokenExpires,
+      status: 'active',
+      emailVerified: false,
     });
 
-    // Generate tokens
-    if (user.twoFactorEnabled) {
-      const code = String(crypto.randomInt(100000, 1000000));
-      await TwoFactorChallenge.destroy({ where: { userId: user.id, consumedAt: null } });
-      await TwoFactorChallenge.create({ userId: user.id, codeHash: crypto.createHash('sha256').update(code).digest('hex'), expiresAt: new Date(Date.now() + 10 * 60 * 1000) });
-      console.log(`2FA login code for ${user.email}: ${code}`);
-      return sendSuccess(res, { requiresTwoFactor: true, userId: user.id }, 'Two-factor verification required');
+    // Email a one-time sign-in code to the address the user just registered with.
+    const codeResult = await issueLoginCode(user);
+
+    const payload = { requiresTwoFactor: true, userId: user.id, email: user.email };
+    if (!codeResult.emailDelivered && config.nodeEnv !== 'production') {
+      // Dev/testing fallback: never lock yourself out while SMTP is not configured.
+      payload.devCode = codeResult.code;
     }
 
-    // Generate tokens
-    const tokens = generateTokens({
-      id: user.id,
-      email: user.email,
-      roleId: user.roleId,
-    });
-
-    // TODO: Send verification email with nodemailer
-    console.log(`Verification token for ${email}: ${verificationToken}`);
-
-    sendSuccess(res, {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        emailVerified: user.emailVerified,
-      },
-      ...tokens,
-    }, 'Registration successful. Please verify your email.', 201);
+    sendSuccess(
+      res,
+      payload,
+      codeResult.emailDelivered
+        ? `We emailed a 6-digit verification code to ${user.email}.`
+        : 'Verification code generated.',
+      201
+    );
   } catch (error) {
     next(error);
   }
 };
-
 // Login controller
 const login = async (req, res, next) => {
   try {
@@ -126,24 +118,23 @@ const login = async (req, res, next) => {
       return sendError(res, 'User account is suspended', 403);
     }
 
-    // Generate tokens
-    const tokens = generateTokens({
-      id: user.id,
-      email: user.email,
-      roleId: user.roleId,
-    });
+    // Credentials are valid - issue a one-time code and email it to the account owner.
+    const codeResult = await issueLoginCode(user);
 
-    sendSuccess(res, {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        status: user.status,
-        emailVerified: user.emailVerified,
-        role: user.Role?.name,
-      },
-      ...tokens,
-    }, 'Login successful');
+    const payload = { requiresTwoFactor: true, userId: user.id, email: user.email };
+    if (!codeResult.emailDelivered && config.nodeEnv !== 'production') {
+      // Dev/testing fallback: never lock yourself out while SMTP is not configured.
+      payload.devCode = codeResult.code;
+    }
+
+    sendSuccess(
+      res,
+      payload,
+      codeResult.emailDelivered
+        ? `We emailed a 6-digit verification code to ${user.email}.`
+        : 'Verification code generated.',
+      200
+    );
   } catch (error) {
     next(error);
   }
@@ -206,8 +197,12 @@ const forgotPassword = async (req, res, next) => {
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    // TODO: Send reset email with nodemailer
-    console.log(`Reset token for ${email}: ${resetToken}`);
+    // Send password reset email to the user's actual email address
+    try {
+      await sendPasswordResetEmail(email, user.name, resetToken);
+    } catch (emailError) {
+      console.error(`Failed to send reset email to ${email}:`, emailError.message);
+    }
 
     sendSuccess(res, {}, 'If email exists, password reset link has been sent');
   } catch (error) {
